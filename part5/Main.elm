@@ -68,12 +68,18 @@ view model =
             ]
         , input
             [ class "search-query"
-              -- TODO onInput, set the query in the model
+            , onInput SetQuery
+
+            -- TODO onInput, set the query in the model
             , defaultValue model.query
             ]
             []
         , button [ class "search-button" ] [ text "Search" ]
-        , ul [ class "results" ] (List.map viewSearchResult model.results)
+        , ul [ class "results" ] (List.map viewSearchResult (List.filter (\result -> String.contains model.query result.name) model.results))
+
+        -- gave wrong error message:
+        -- , ul [ class "results" ] (List.map viewSearchResult (List.filter (\result -> result == model.query) model.results))
+        -- , ul [ class "results" ] [ li [] [ List.map viewSearchResult model.results ] ]
         ]
 
 
@@ -85,16 +91,26 @@ viewSearchResult result =
             [ text result.name ]
         , button
             -- TODO add an onClick handler that sends a DeleteById msg
-            [ class "hide-result" ]
+            [ class "hide-result"
+            , onClick (DeleteById result.id)
+            ]
             [ text "X" ]
         ]
 
 
 update : Msg -> Model -> Model
 update msg model =
-    -- TODO if we get a SetQuery msg, use it to set the model's query field,
-    -- and if we get a DeleteById msg, delete the appropriate result
-    model
+    case msg of
+        DeleteById id ->
+            { model | results = List.filter (\result -> result.id /= id) model.results }
+
+        SetQuery query ->
+            { model | query = query }
+
+
+
+-- TODO if we get a SetQuery msg, use it to set the model's query field,
+-- and if we get a DeleteById msg, delete the appropriate result
 
 
 main : Program Never Model Msg

@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, target, href, property, defaultValue)
+import Html.Attributes exposing (class, defaultValue, href, property, target)
 import Html.Events exposing (..)
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (..)
@@ -26,9 +26,9 @@ searchResultDecoder =
     --
     -- TODO replace these calls to `hardcoded` with calls to `required`
     decode SearchResult
-        |> hardcoded 0
-        |> hardcoded ""
-        |> hardcoded 0
+        |> required "id" int
+        |> required "full_name" string
+        |> required "stargazers_count" int
 
 
 type alias Model =
@@ -60,6 +60,9 @@ responseDecoder =
 decodeResults : String -> List SearchResult
 decodeResults json =
     case decodeString responseDecoder json of
+        Ok searchResults ->
+            searchResults
+
         -- TODO add branches to this case-expression which return:
         --
         -- * the search results, if decoding succeeded
@@ -71,7 +74,7 @@ decodeResults json =
         --
         -- Ok (List SearchResult)
         -- Err String
-        _ ->
+        Err message ->
             []
 
 
@@ -116,4 +119,4 @@ update msg model =
                 newResults =
                     List.filter (\{ id } -> id /= idToHide) model.results
             in
-                { model | results = newResults }
+            { model | results = newResults }
